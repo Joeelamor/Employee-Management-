@@ -1,26 +1,24 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import { BrowserRouter, Route, Switch, withRouter } from 'react-router-dom';
+import Home from './home';
+import Create from './create';
+import Edit from './edit';
+import ErrorBoundary from './error/errorBoundary';
+class App extends React.Component {
+  render() {
+    const WithRouterHome = withRouter(Home);
+    const WithRouterCreate = withRouter(Create);
+    const WithRouterEdit = withRouter(Edit);
+    return (
+      <BrowserRouter>
+        <Switch>
+          <Route exact path='/' render={() => <ErrorBoundary><WithRouterHome /></ErrorBoundary>}/>
+          <Route path='/create' render={() => <ErrorBoundary><WithRouterCreate /></ErrorBoundary>}/>
+          <Route path='/edit/:id' render={() => <ErrorBoundary><WithRouterEdit /></ErrorBoundary>}/>
+        </Switch>
+      </BrowserRouter>
+    );
+  }
 }
 
 export default App;
