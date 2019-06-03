@@ -17,6 +17,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import Link from "@material-ui/core/Link";
 import Button from "@material-ui/core/Button";
 import { unstable_Box as Box } from "@material-ui/core/Box";
 import SearchIcon from "@material-ui/icons/Search";
@@ -57,7 +58,9 @@ class Home extends React.Component {
       initialLoad: true,
       offset: 0,
       limit: 15,
-      pageStart: 0
+      pageStart: 0,
+      employeeId: "",
+      managerId: ""
     };
   }
 
@@ -101,6 +104,8 @@ class Home extends React.Component {
         orderBy: "name",
         offset: 0,
         initialLoad: true,
+        employeeId: "",
+        managerId: "",
         pageStart: this.state.pageStart === 0 ? -1 : 0
       },
       this.props.resetHasMoreItems
@@ -115,7 +120,9 @@ class Home extends React.Component {
           this.state.limit,
           this.state.orderBy,
           this.state.order,
-          this.state.search
+          this.state.search,
+          this.state.employeeId,
+          this.state.managerId
         )
       );
     }).then(() => {
@@ -148,6 +155,30 @@ class Home extends React.Component {
 
   handleAddEmployee = () => {
     this.props.history.push("/create");
+  };
+
+  handleFindDetail = employeeId => {
+    this.setState(
+      {
+        employeeId: employeeId,
+        offset: 0,
+        initialLoad: true,
+        pageStart: this.state.pageStart === 0 ? -1 : 0
+      },
+      this.props.resetHasMoreItems
+    );
+  };
+
+  handleFindManager = managerId => {
+    this.setState(
+      {
+        managerId: managerId,
+        offset: 0,
+        initialLoad: true,
+        pageStart: this.state.pageStart === 0 ? -1 : 0
+      },
+      this.props.resetHasMoreItems
+    );
   };
 
   render() {
@@ -263,7 +294,7 @@ class Home extends React.Component {
                           }
                           style={{ cursor: "pointer" }}
                         >
-                          {employee.managerName}
+                          <Link>{employee.managerName}</Link>
                         </TableCell>
                         <TableCell
                           className={classes.tableCell}
@@ -274,7 +305,7 @@ class Home extends React.Component {
                           }
                           style={{ cursor: "pointer" }}
                         >
-                          {employee.noOfDR}
+                          <Link>{employee.noOfDR}</Link>
                         </TableCell>
 
                         <TableCell className={classes.tableCell}>
@@ -330,8 +361,26 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    getEmployeeList: (offset, limit, orderBy, order, search) => {
-      dispatch(getEmployees(offset, limit, orderBy, order, search));
+    getEmployeeList: (
+      offset,
+      limit,
+      orderBy,
+      order,
+      search,
+      employeeId,
+      managerId
+    ) => {
+      dispatch(
+        getEmployees(
+          offset,
+          limit,
+          orderBy,
+          order,
+          search,
+          employeeId,
+          managerId
+        )
+      );
     },
     deleteEmployeeById: id => {
       dispatch(deleteEmployee(id));

@@ -89,13 +89,28 @@ export const resetHasMoreItems = () => {
   };
 };
 
-export const getEmployees = (offset, limit, orderBy, order, search) => {
+export const getEmployees = (
+  offset,
+  limit,
+  orderBy,
+  order,
+  search,
+  employeeId,
+  managerId
+) => {
   return dispatch => {
     dispatch(getEmployeesRequest());
+    const url =
+      "http://localhost:8080/api/employees/get?" +
+      ("offset=" + offset + "&") +
+      ("limit=" + limit + "&") +
+      ("orderBy=" + orderBy + "&") +
+      ("order=" + order) +
+      (search ? "&search=" + search : "") +
+      (employeeId ? "&employeeId=" + employeeId : "") +
+      (managerId ? "&managerId=" + managerId : "");
     axios
-      .get(
-        `http://localhost:8080/api/employees/get?offset=${offset}&limit=${limit}&orderBy=${orderBy}&order=${order}&search=${search}`
-      )
+      .get(url)
       .then(response => {
         dispatch(getEmployeeSuccess(offset, response));
       })
