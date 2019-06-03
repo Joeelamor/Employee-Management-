@@ -1,4 +1,9 @@
-const initState = { employees: [], isLoading: false, err: null, first: true };
+const initState = {
+  employees: [],
+  hasMoreItems: true,
+  isLoading: false,
+  err: null
+};
 
 const employeeList = (state = initState, action) => {
   switch (action.type) {
@@ -9,13 +14,24 @@ const employeeList = (state = initState, action) => {
       };
 
     case "FETCH_EMPLOYEES_SUCCESS":
-      return {
-        ...state,
-        isLoading: false,
-        err: null,
-        employees: action.employees,
-        first: false
-      };
+      console.log(action.payload);
+      if (action.payload.offset === 0) {
+        return {
+          ...state,
+          isLoading: false,
+          err: null,
+          employees: action.payload.employees,
+          hasMoreItems: action.payload.hasMoreItems
+        };
+      } else {
+        return {
+          ...state,
+          isLoading: false,
+          err: null,
+          employees: [...state.employees, ...action.payload.employees],
+          hasMoreItems: action.payload.hasMoreItems
+        };
+      }
 
     case "FETCH_EMPLOYEES_FAILURE":
       return {
@@ -32,10 +48,10 @@ const employeeList = (state = initState, action) => {
 
     case "ADD_EMPLOYEE_SUCCESS":
       return {
-        ...state,
-        employees: [...state.employees, action.employee],
         isLoading: false,
-        err: null
+        err: null,
+        hasMoreItems: true,
+        employees: []
       };
 
     case "ADD_EMPLOYEE_FAILURE":
@@ -53,12 +69,10 @@ const employeeList = (state = initState, action) => {
 
     case "DELETE_EMPLOYEE_SUCCESS":
       return {
-        ...state,
-        employees: state.employees.filter(
-          employee => employee._id !== action.employee._id
-        ),
         isLoading: false,
-        err: null
+        err: null,
+        hasMoreItems: true,
+        employees: []
       };
 
     case "DELETE_EMPLOYEE_FAILURE":
@@ -76,14 +90,10 @@ const employeeList = (state = initState, action) => {
 
     case "EDIT_EMPLOYEE_SUCCESS":
       return {
-        employees: state.employees.map(employee => {
-          if (employee._id === action.employee._id) {
-            return { ...action.employee };
-          }
-          return employee;
-        }),
+        employees: [],
         isLoading: false,
-        err: null
+        err: null,
+        hasMoreItems: true
       };
 
     case "EDIT_EMPLOYEE_FAILURE":
@@ -91,6 +101,13 @@ const employeeList = (state = initState, action) => {
         ...state,
         isLoading: false,
         err: action.err
+      };
+    case "RESET_MORE_ITEMS_SUCCESS":
+      return {
+        employees: [],
+        hasMoreItems: true,
+        isLoading: false,
+        err: null
       };
 
     default:

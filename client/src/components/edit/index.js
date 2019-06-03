@@ -61,12 +61,20 @@ class Edit extends React.Component {
       cellPhone: selectedEmployee[0].cellPhone,
       sms: selectedEmployee[0].sms,
       email: selectedEmployee[0].email,
-      manager: selectedEmployee[0].managerId
+      managerId: selectedEmployee[0].managerId,
+      managerName: selectedEmployee[0].managerName
     };
   }
 
   handleChange = event => {
     this.setState({ [event.target.id]: event.target.value });
+  };
+
+  handleChangeManager = e => {
+    this.setState({
+      managerId: e.target[e.target.selectedIndex].id,
+      managerName: e.target.value
+    });
   };
 
   handleAvatar = e => {
@@ -94,10 +102,14 @@ class Edit extends React.Component {
       cellPhone: this.state.cellPhone,
       sms: this.state.sms,
       email: this.state.email,
-      managerId: this.state.managerId
+      managerId: this.state.managerId,
+      managerName: this.state.managerName
     };
-    this.props.editEmployeeById(this.props.match.params.id, newEmployee);
-    this.props.history.push("/");
+    this.props.editEmployeeById(
+      this.props.match.params.id,
+      newEmployee,
+      this.props.history
+    );
   };
 
   render() {
@@ -154,7 +166,7 @@ class Edit extends React.Component {
                   helperText="Please select your title"
                   margin="normal"
                 >
-                  {["", "Mr.", "Mrs.", "Miss.", "Ms.", "Sir.", "Dr."].map(
+                  {["", "CEO", "CFO", "COO", "VP", "Senior VP", "AVP"].map(
                     option => (
                       <option key={option} value={option}>
                         {option}
@@ -235,9 +247,9 @@ class Edit extends React.Component {
                 <TextField
                   select
                   label="Manager"
-                  id="manager"
-                  value={this.state.managerId}
-                  onChange={this.handleChange}
+                  id="managerId"
+                  value={this.state.managerName}
+                  onChange={this.handleChangeManager}
                   SelectProps={{
                     native: true,
                     MenuProps: {
@@ -248,7 +260,11 @@ class Edit extends React.Component {
                   margin="normal"
                 >
                   {[{ _id: 0, name: "" }, ...employees].map(employee => (
-                    <option key={employee._id} value={employee._id}>
+                    <option
+                      key={employee._id}
+                      value={employee.name}
+                      id={employee._id}
+                    >
                       {employee.name}
                     </option>
                   ))}
@@ -296,8 +312,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    editEmployeeById: (id, newEmployee) => {
-      dispatch(editCurrentEmployee(id, newEmployee));
+    editEmployeeById: (id, newEmployee, history) => {
+      dispatch(editCurrentEmployee(id, newEmployee, history));
     }
   };
 };

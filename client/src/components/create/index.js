@@ -10,6 +10,7 @@ import Paper from "@material-ui/core/Paper";
 import TextField from "@material-ui/core/TextField";
 import Avatar from "@material-ui/core/Avatar";
 import Grid from "@material-ui/core/Grid";
+import image from "../data/image";
 
 const getBase64 = file => {
   return new Promise((resolve, reject) => {
@@ -99,10 +100,10 @@ class Create extends React.Component {
       cellPhone: this.state.cellPhone,
       sms: this.state.sms,
       email: this.state.email,
-      managerId: this.state.managerId
+      managerId: this.state.managerId,
+      managerName: this.state.managerName
     };
-    this.props.createNewEmployee(employee);
-    this.props.history.push("/");
+    this.props.createNewEmployee(employee, this.props.history);
   };
 
   render() {
@@ -116,11 +117,20 @@ class Create extends React.Component {
         <Paper className={classes.paper}>
           <Grid container spacing={24}>
             <Grid item xs={6}>
-              <Avatar
-                alt={this.state.name}
-                src={this.state.avatar}
-                className={classes.bigAvatar}
-              />
+              {this.state.avatar === "" ? (
+                <Avatar
+                  alt={this.state.name}
+                  src={image}
+                  className={classes.bigAvatar}
+                />
+              ) : (
+                <Avatar
+                  alt={this.state.name}
+                  src={this.state.avatar}
+                  className={classes.bigAvatar}
+                />
+              )}
+
               <p style={{ fontSize: "12px" }}>
                 Please select a photo as avatar
               </p>
@@ -304,8 +314,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    createNewEmployee: employee => {
-      dispatch(createEmployee(employee));
+    createNewEmployee: (employee, history) => {
+      dispatch(createEmployee(employee, history));
     }
   };
 };

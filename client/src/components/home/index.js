@@ -1,7 +1,10 @@
 import React from "react";
 import { connect } from "react-redux";
-import { getEmployees, deleteEmployee } from "../../redux/actions";
-import Loading from "../loading";
+import {
+  getEmployees,
+  deleteEmployee,
+  resetHasMoreItems
+} from "../../redux/actions";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -20,6 +23,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import TextField from "@material-ui/core/TextField";
 import Toolbar from "@material-ui/core/Toolbar";
 import Avatar from "@material-ui/core/Avatar";
+import EnhancedInfiniteScroll from "./EnhancedInfiniteScroll";
 
 const styles = theme => ({
   tool: {
@@ -47,91 +51,80 @@ class Home extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      matchedText: "",
+      search: "",
       order: "asc",
       orderBy: "name",
-      managerToFind: "",
-      detailIdToFind: "",
-      findManager: false,
-      findDetail: false
+      initialLoad: true,
+      offset: 0,
+      limit: 15,
+      pageStart: 0
     };
-  }
-
-  componentDidMount() {
-    if (this.props.first) {
-      this.props.getEmployeeList();
-    }
   }
 
   handleRequestSort = (event, property) => {
     const orderBy = property;
     let order = "desc";
-    if (property !== "edit" && property !== "delete") {
+    if (property !== "edit" && property !== "delete" && property !== "avatar") {
       if (this.state.orderBy === property && this.state.order === "desc") {
         order = "asc";
       }
-      this.setState({ order, orderBy });
+      this.setState(
+        {
+          order,
+          orderBy,
+          offset: 0,
+          initialLoad: true,
+          pageStart: this.state.pageStart === 0 ? -1 : 0
+        },
+        this.props.resetHasMoreItems
+      );
     }
   };
 
-  desc = (a, b, orderBy) => {
-    if (b[orderBy] < a[orderBy]) {
-      return -1;
-    }
-    if (b[orderBy] > a[orderBy]) {
-      return 1;
-    }
-    return 0;
-  };
-
-  getSorting = (order, orderBy) => {
-    return order === "desc"
-      ? (a, b) => this.desc(a, b, orderBy)
-      : (a, b) => -this.desc(a, b, orderBy);
-  };
-
-  handleMatchedText = e => {
-    this.setState({ matchedText: e.target.value });
-  };
-
-  handleFindManager = managerId => {
-    this.setState({ managerToFind: managerId });
-    this.setState({ findManager: true });
-    this.setState({ findDetail: false });
-  };
-
-  handleFindDetail = detailId => {
-    this.setState({ detailIdToFind: detailId });
-    this.setState({ findDetail: true });
-    this.setState({ findManager: false });
+  handleSearch = e => {
+    this.setState(
+      {
+        search: e.target.value,
+        offset: 0,
+        initialLoad: true,
+        pageStart: this.state.pageStart === 0 ? -1 : 0
+      },
+      this.props.resetHasMoreItems
+    );
   };
 
   handleResetFilter = () => {
-    this.setState({ managerToFind: "" });
-    this.setState({ detailIdToFind: "" });
-    this.setState({ findDetail: false });
-    this.setState({ findManager: false });
+    this.setState(
+      {
+        search: "",
+        order: "asc",
+        orderBy: "name",
+        offset: 0,
+        initialLoad: true,
+        pageStart: this.state.pageStart === 0 ? -1 : 0
+      },
+      this.props.resetHasMoreItems
+    );
   };
 
-  handleSearch = employee => {
-    let matchedEmployee = [
-      employee.name,
-      employee.sex,
-      employee.title,
-      employee.startDate,
-      employee.officePhone,
-      employee.cellPhone,
-      employee.sms,
-      employee.email,
-      employee.managerId
-      //   employee.noOfDR
-    ];
-    let flag = matchedEmployee
-      .filter(ele => ele !== undefined)
-      .some(ele => {
-        return ele.toLowerCase().includes(this.state.matchedText.toLowerCase());
+  loadMore = () => {
+    new Promise((resolve, reject) => {
+      resolve(
+        this.props.getEmployeeList(
+          this.state.offset,
+          this.state.limit,
+          this.state.orderBy,
+          this.state.order,
+          this.state.search
+        )
+      );
+    }).then(() => {
+      let newOffset = this.state.offset + this.state.limit;
+      this.setState({
+        initialLoad: false,
+        offset: newOffset
       });
-    return flag;
+    });
   };
 
   handleEditEmployee = id => {
@@ -139,7 +132,18 @@ class Home extends React.Component {
   };
 
   handleDeleteEmployee = id => {
-    this.props.deleteEmployeeById(id);
+    this.setState(
+      {
+        offset: 0,
+        initialLoad: true,
+        pageStart: this.state.pageStart === 0 ? -1 : 0
+      },
+      () => {
+        new Promise((resolve, reject) => {
+          resolve(this.props.resetHasMoreItems);
+        }).then(this.props.deleteEmployeeById(id));
+      }
+    );
   };
 
   handleAddEmployee = () => {
@@ -148,24 +152,11 @@ class Home extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { employees, isLoading, err } = this.props;
-    const { order, orderBy } = this.state;
-    var employeeToShow = [...employees];
-    if (this.state.findManager === true) {
-      employeeToShow = employees.filter(
-        employee =>
-          this.state.managerToFind === "" ||
-          employee._id === this.state.managerToFind
-      );
-    } else if (this.state.findDetail === true) {
-      employeeToShow = employees.filter(
-        employee => employee.managerId === this.state.detailIdToFind
-      );
-    }
+    const { employees, err, hasMoreItems } = this.props;
+    const { order, orderBy, initialLoad, pageStart } = this.state;
+
     if (err) throw err;
-    return isLoading ? (
-      <Loading />
-    ) : (
+    return (
       <div>
         <Paper className={classes.tool}>
           <Toolbar className={classes.root}>
@@ -174,8 +165,8 @@ class Home extends React.Component {
               <TextField
                 placeholder="search"
                 id="search"
-                value={this.state.matchedText}
-                onChange={this.handleMatchedText}
+                value={this.state.search}
+                onChange={this.handleSearch}
                 InputLabelProps={{
                   shrink: true
                 }}
@@ -195,7 +186,7 @@ class Home extends React.Component {
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => this.handleAddEmployee()}
+                    onClick={this.handleAddEmployee}
                   >
                     New Employee
                   </Button>
@@ -204,17 +195,27 @@ class Home extends React.Component {
             </Box>
           </Toolbar>
           <div className={classes.tableWrapper}>
-            <Table aria-labelledby="tableTitle">
-              <EnhancedTableHead
-                order={order}
-                orderBy={orderBy}
-                onRequestSort={this.handleRequestSort}
-              />
-              <TableBody>
-                {employeeToShow
-                  .sort(this.getSorting(order, orderBy))
-                  .filter(employee => this.handleSearch(employee))
-                  .map(employee => {
+            <EnhancedInfiniteScroll
+              pageStart={pageStart}
+              loadMore={this.loadMore}
+              hasMore={hasMoreItems}
+              initialLoad={initialLoad}
+              threshold={100}
+              loader={
+                <div className="loader" key={0}>
+                  Loading...
+                </div>
+              }
+            >
+              <Table aria-labelledby="tableTitle">
+                <EnhancedTableHead
+                  order={order}
+                  orderBy={orderBy}
+                  onRequestSort={this.handleRequestSort}
+                />
+
+                <TableBody>
+                  {employees.map(employee => {
                     return (
                       <TableRow hover tabIndex={-1} key={employee._id}>
                         <TableCell className={classes.tableCell}>
@@ -255,22 +256,19 @@ class Home extends React.Component {
                         </TableCell>
                         <TableCell
                           className={classes.tableCell}
-                          onClick={() =>
-                            this.handleFindManager(employee.managerId)
+                          onClick={
+                            employee.managerName !== ""
+                              ? () => this.handleFindManager(employee.managerId)
+                              : null
                           }
                           style={{ cursor: "pointer" }}
                         >
-                          {employee.managerId === undefined ||
-                          employee.managerId === ""
-                            ? ""
-                            : employees.filter(
-                                cur => cur._id === employee.managerId
-                              )[0].name}
+                          {employee.managerName}
                         </TableCell>
                         <TableCell
                           className={classes.tableCell}
                           onClick={
-                            employee.noOfDR !== 0
+                            employee.noOfDR !== "0"
                               ? () => this.handleFindDetail(employee._id)
                               : null
                           }
@@ -308,8 +306,9 @@ class Home extends React.Component {
                       </TableRow>
                     );
                   })}
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </EnhancedInfiniteScroll>
           </div>
         </Paper>
       </div>
@@ -324,19 +323,21 @@ Home.propTypes = {
 const mapStateToProps = state => {
   return {
     employees: state.employeeList.employees,
-    isLoading: state.employeeList.isLoading,
-    first: state.employeeList.first,
+    hasMoreItems: state.employeeList.hasMoreItems,
     err: state.employeeList.err
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    getEmployeeList: () => {
-      dispatch(getEmployees());
+    getEmployeeList: (offset, limit, orderBy, order, search) => {
+      dispatch(getEmployees(offset, limit, orderBy, order, search));
     },
     deleteEmployeeById: id => {
       dispatch(deleteEmployee(id));
+    },
+    resetHasMoreItems: () => {
+      dispatch(resetHasMoreItems());
     }
   };
 };
