@@ -28,13 +28,14 @@ import EnhancedInfiniteScroll from "./EnhancedInfiniteScroll";
 
 const styles = theme => ({
   tool: {
-    paddingRight: theme.spacing.unit
+    margin: "0 auto"
   },
   root: {
     paddingRight: theme.spacing.unit
   },
   tableCell: {
-    fontSize: "12px"
+    fontSize: "12px",
+    textAlign: "left"
   },
   tableWrapper: {
     overflowX: "auto"

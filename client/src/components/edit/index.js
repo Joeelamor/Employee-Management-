@@ -251,13 +251,17 @@ class Edit extends React.Component {
                   ))}
                 </TextField>
               </div>
-              <div style={{ margin: "10px", marginTop: "-15px" }}>
+              <div style={{ margin: "10px" }}>
                 <TextField
+                  type="date"
                   placeholder="start date"
                   label="Start Date"
                   id="startDate"
                   onChange={this.handleChange}
                   value={this.state.startDate}
+                  InputLabelProps={{
+                    shrink: true
+                  }}
                 />
               </div>
               <div style={{ margin: "10px" }}>

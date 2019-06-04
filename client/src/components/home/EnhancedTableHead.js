@@ -47,7 +47,7 @@ class EnhancedTableHead extends React.Component {
                       ? "Sort"
                       : ""
                   }
-                  placement={row.numeric ? "bottom-end" : "bottom-start"}
+                  placement={"bottom-end"}
                   enterDelay={300}
                 >
                   <TableSortLabel
