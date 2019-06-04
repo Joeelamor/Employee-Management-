@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { editCurrentEmployee } from "../../redux/actions";
+import { editCurrentEmployee, getManager } from "../../redux/actions";
 import Loading from "../loading";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
@@ -69,6 +69,10 @@ class Edit extends React.Component {
       cellPhoneError: "",
       smsError: ""
     };
+  }
+
+  componentDidMount() {
+    this.props.getManagerList();
   }
 
   handleChange = event => {
@@ -162,8 +166,7 @@ class Edit extends React.Component {
   };
 
   render() {
-    const { isLoading, err, classes, employees } = this.props;
-    employees.filter(employee => employee._id !== this.state.currentId);
+    const { isLoading, err, classes, managers } = this.props;
     if (err) throw err;
     return isLoading ? (
       <Loading />
@@ -317,15 +320,19 @@ class Edit extends React.Component {
                   helperText="Please select your manager"
                   margin="normal"
                 >
-                  {[{ _id: 0, name: "" }, ...employees].map(employee => (
-                    <option
-                      key={employee._id}
-                      value={employee.name}
-                      id={employee._id}
-                    >
-                      {employee.name}
-                    </option>
-                  ))}
+                  {[{ _id: "", name: "" }, ...managers]
+                    .filter(manager => {
+                      return manager._id !== this.props.match.params.id;
+                    })
+                    .map(manager => (
+                      <option
+                        key={manager._id}
+                        value={manager.name}
+                        id={manager._id}
+                      >
+                        {manager.name}
+                      </option>
+                    ))}
                 </TextField>
               </div>
               <div>
@@ -363,6 +370,7 @@ Edit.propTypes = {
 const mapStateToProps = state => {
   return {
     employees: state.employeeList.employees,
+    managers: state.managerList.managers,
     isLoading: state.employeeList.isLoading,
     err: state.employeeList.err
   };
@@ -372,6 +380,9 @@ const mapDispatchToProps = dispatch => {
   return {
     editEmployeeById: (id, newEmployee, history) => {
       dispatch(editCurrentEmployee(id, newEmployee, history));
+    },
+    getManagerList: () => {
+      dispatch(getManager());
     }
   };
 };

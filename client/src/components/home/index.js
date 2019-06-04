@@ -57,7 +57,7 @@ class Home extends React.Component {
       orderBy: "name",
       initialLoad: true,
       offset: 0,
-      limit: 15,
+      limit: 20,
       pageStart: 0,
       employeeId: "",
       managerId: ""
@@ -135,7 +135,17 @@ class Home extends React.Component {
   };
 
   handleEditEmployee = id => {
-    this.props.history.push(`/edit/${id}`);
+    new Promise((resolve, reject) => {
+      resolve(
+        this.setState({
+          offset: 0,
+          initialLoad: true,
+          pageStart: this.state.pageStart === 0 ? -1 : 0
+        })
+      );
+    }).then(() => {
+      this.props.history.push(`/edit/${id}`);
+    });
   };
 
   handleDeleteEmployee = id => {
@@ -154,7 +164,17 @@ class Home extends React.Component {
   };
 
   handleAddEmployee = () => {
-    this.props.history.push("/create");
+    new Promise((resolve, reject) => {
+      resolve(
+        this.setState({
+          offset: 0,
+          initialLoad: true,
+          pageStart: this.state.pageStart === 0 ? -1 : 0
+        })
+      );
+    }).then(() => {
+      this.props.history.push("/create");
+    });
   };
 
   handleFindDetail = employeeId => {

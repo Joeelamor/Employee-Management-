@@ -1,8 +1,10 @@
-import { combineReducers } from 'redux';
-import employeeList from './employeeList';
+import { combineReducers } from "redux";
+import employeeList from "./employeeList";
+import managerList from "./managerList";
 
 const reducers = combineReducers({
-    employeeList
+  employeeList,
+  managerList
 });
 
 export default reducers;

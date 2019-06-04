@@ -83,6 +83,26 @@ const resetHasMoreItemsSuccess = () => {
   };
 };
 
+const getManagerRequest = () => {
+  return {
+    type: "FETCH_MANAGER_REQUEST"
+  };
+};
+
+const getManagerSuccess = response => {
+  return {
+    type: "FETCH_MANAGER_SUCCESS",
+    managers: response.data.managers
+  };
+};
+
+const getManagerFail = err => {
+  return {
+    type: "FETCH_MANAGER_FAILURE",
+    err: err
+  };
+};
+
 export const resetHasMoreItems = () => {
   return dispatch => {
     dispatch(resetHasMoreItemsSuccess());
@@ -156,11 +176,24 @@ export const deleteEmployee = id => {
     axios
       .delete(`http://localhost:8080/api/employees/delete/${id}`)
       .then(response => {
-        console.log("nihao");
         dispatch(deleteEmployeeSuccess(response));
       })
       .catch(err => {
         dispatch(deleteEmployeeFail(err));
+      });
+  };
+};
+
+export const getManager = () => {
+  return dispatch => {
+    dispatch(getManagerRequest());
+    axios
+      .get("http://localhost:8080/api/employees/getManager")
+      .then(response => {
+        dispatch(getManagerSuccess(response));
+      })
+      .catch(err => {
+        dispatch(getManagerFail(err));
       });
   };
 };

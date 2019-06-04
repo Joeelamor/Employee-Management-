@@ -318,7 +318,7 @@ class Create extends React.Component {
                   helperText="Please select your manager"
                   margin="normal"
                 >
-                  {[{ _id: 0, name: "" }, ...employees].map(employee => (
+                  {[{ _id: "", name: "" }, ...employees].map(employee => (
                     <option
                       key={employee._id}
                       value={employee.name}
