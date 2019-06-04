@@ -60,12 +60,60 @@ class Create extends React.Component {
       sms: "",
       email: "",
       managerId: "",
-      managerName: ""
+      managerName: "",
+      emailError: "",
+      officePhoneError: "",
+      cellPhoneError: "",
+      smsError: ""
     };
   }
 
   handleChange = event => {
     this.setState({ [event.target.id]: event.target.value });
+  };
+
+  handleEmail = event => {
+    if (event.target.value.match(/\S+@\S+\.\S+/)) {
+      this.setState({ emailError: "", email: event.target.value });
+    } else {
+      this.setState({
+        emailError: "Invalid format: xxxxxx@xxxx.xxx",
+        email: event.target.value
+      });
+    }
+  };
+
+  handleOfficePhone = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ officePhoneError: "", officePhone: event.target.value });
+    } else {
+      this.setState({
+        officePhoneError: "Invalid format: XXXXXXXXXX",
+        officePhone: event.target.value
+      });
+    }
+  };
+
+  handleCellPhone = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ cellPhoneError: "", cellPhone: event.target.value });
+    } else {
+      this.setState({
+        cellPhoneError: "Invalid format: XXXXXXXXXX",
+        cellPhone: event.target.value
+      });
+    }
+  };
+
+  handleSms = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ smsError: "", sms: event.target.value });
+    } else {
+      this.setState({
+        smsError: "Invalid format: XXXXXXXXXX",
+        sms: event.target.value
+      });
+    }
   };
 
   handleAvatar = e => {
@@ -150,6 +198,7 @@ class Create extends React.Component {
                   id="name"
                   onChange={this.handleChange}
                   value={this.state.name}
+                  required
                 />
               </div>
               <div style={{ margin: "10px", marginTop: "-10px" }}>
@@ -214,7 +263,9 @@ class Create extends React.Component {
                   placeholder="office phone"
                   label="Office Phone"
                   id="officePhone"
-                  onChange={this.handleChange}
+                  error={!!this.state.officePhoneError}
+                  helperText={this.state.officePhoneError}
+                  onChange={this.handleOfficePhone}
                   value={this.state.officePhone}
                 />
               </div>
@@ -223,7 +274,9 @@ class Create extends React.Component {
                   placeholder="cell phone"
                   label="Cell Phone"
                   id="cellPhone"
-                  onChange={this.handleChange}
+                  error={!!this.state.cellPhoneError}
+                  helperText={this.state.cellPhoneError}
+                  onChange={this.handleCellPhone}
                   value={this.state.cellPhone}
                 />
               </div>
@@ -232,7 +285,9 @@ class Create extends React.Component {
                   placeholder="sms"
                   label="SMS"
                   id="sms"
-                  onChange={this.handleChange}
+                  error={!!this.state.smsError}
+                  helperText={this.state.smsError}
+                  onChange={this.handleSms}
                   value={this.state.sms}
                 />
               </div>
@@ -241,7 +296,9 @@ class Create extends React.Component {
                   placeholder="email"
                   label="Email"
                   id="email"
-                  onChange={this.handleChange}
+                  error={!!this.state.emailError}
+                  helperText={this.state.emailError}
+                  onChange={this.handleEmail}
                   value={this.state.email}
                 />
               </div>

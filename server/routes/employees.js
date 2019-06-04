@@ -127,50 +127,20 @@ router.post("/insert", (req, res) => {
 
 router.put("/update/:id", (req, res) => {
   var newEmployee = req.body;
-  Employee.findOneAndUpdate(
+  Employee.findByIdAndUpdate(
     { _id: req.params.id },
     { $set: newEmployee },
     (err, employee) => {
       if (err) return res.status(500).send(err);
       else {
         let obj = employee._doc;
-        // Manager no change
+        // if previous and current managerId are same, only update current employee
         if (obj.managerId === req.body.managerId) {
-          Employee.findByIdAndUpdate(
-            { _id: req.params.id },
-            { $set: newEmployee },
-            err => {
-              if (err) {
-                return res.status(500).send(err);
-              } else {
-                return res.sendStatus(200);
-              }
-            }
-          );
+          return res.sendStatus(200);
         } else {
-          // Manager change: previous manager decrease noOfDR
-          if (employee.managerId !== "") {
-            Employee.findById(obj.managerId, (err, manager) => {
-              if (err) return res.status(500).send(err);
-              else {
-                if (manager !== null) {
-                  let newManager = manager._doc;
-                  let num = parseInt(newManager.noOfDR) - 1;
-                  newManager.noOfDR = num.toString();
-                  Employee.findByIdAndUpdate(
-                    { _id: obj.managerId },
-                    { $set: newManager },
-                    err => {
-                      if (err) return res.status(500).send(err);
-                      else res.sendStatus(200);
-                    }
-                  );
-                }
-              }
-            });
-          }
-          // Manager change: new manager increase noOfDR
-          if (req.body.managerId !== "") {
+          // if previous and current managerId are different.
+          // if previous is "", current is not "", update future manager's noOfDR.
+          if (obj.managerId === "") {
             Employee.findById(req.body.managerId, (err, manager) => {
               if (err) return res.status(500).send(err);
               else {
@@ -189,6 +159,48 @@ router.put("/update/:id", (req, res) => {
                 }
               }
             });
+          } else {
+            // if previous is not "", and current is not "", update previous and future manager's noOfDR
+            Employee.findById(obj.managerId, (err, manager) => {
+              if (err) return res.status(500).send(err);
+              else {
+                if (manager !== null) {
+                  let newManager = manager._doc;
+                  let num = parseInt(newManager.noOfDR) - 1;
+                  newManager.noOfDR = num.toString();
+                  Employee.findByIdAndUpdate(
+                    { _id: obj.managerId },
+                    { $set: newManager },
+                    err => {
+                      if (err) return res.status(500).send(err);
+                      else {
+                        Employee.findById(
+                          req.body.managerId,
+                          (err, manager) => {
+                            if (err) return res.status(500).send(err);
+                            else {
+                              if (manager !== null) {
+                                let newManager = manager._doc;
+                                let num = parseInt(newManager.noOfDR) + 1;
+                                newManager.noOfDR = num.toString();
+                                Employee.findByIdAndUpdate(
+                                  { _id: req.body.managerId },
+                                  { $set: newManager },
+                                  err => {
+                                    if (err) return res.status(500).send(err);
+                                    else res.sendStatus(200);
+                                  }
+                                );
+                              }
+                            }
+                          }
+                        );
+                      }
+                    }
+                  );
+                }
+              }
+            });
           }
         }
       }
@@ -201,11 +213,44 @@ router.delete("/delete/:id", (req, res) => {
     if (err) res.status(500).send(err);
     else {
       let obj = employee._doc;
-      if (obj.managerId !== "") {
-        Employee.findById(obj.managerId, (err, manager) => {
-          if (err) return res.status(500).send(err);
-          else {
-            if (manager != null) {
+      if (obj.managerId === "" && obj.noOfDR === "0") {
+        return res.sendStatus(200);
+      } else {
+        if (obj.managerId !== "" && obj.noOfDR === "0") {
+          Employee.findById(obj.managerId, (err, manager) => {
+            if (err) return res.status(500).send(err);
+            else {
+              let newManager = manager._doc;
+              let num = parseInt(newManager.noOfDR) - 1;
+              newManager.noOfDR = num.toString();
+              Employee.findByIdAndUpdate(
+                { _id: obj.managerId },
+                { $set: newManager },
+                err => {
+                  if (err) return res.status(500).send(err);
+                  else return res.sendStatus(200);
+                }
+              );
+            }
+          });
+        } else if (obj.managerId === "" && obj.noOfDR !== "0") {
+          Employee.updateMany(
+            { managerId: obj._id },
+            {
+              $set: {
+                managerId: "",
+                managerName: ""
+              }
+            },
+            err => {
+              if (err) return res.status(500).send(err);
+              else return res.sendStatus(200);
+            }
+          );
+        } else {
+          Employee.findById(obj.managerId, (err, manager) => {
+            if (err) return res.status(500).send(err);
+            else {
               let newManager = manager._doc;
               let num = parseInt(newManager.noOfDR) - 1;
               newManager.noOfDR = num.toString();
@@ -215,63 +260,22 @@ router.delete("/delete/:id", (req, res) => {
                 err => {
                   if (err) return res.status(500).send(err);
                   else {
-                    if (parseInt(obj.noOfDR) > 0) {
-                      Employee.findById(
-                        { managerId: req.params._id },
-                        (err, users) => {
-                          if (err) return res.status(500).send(err);
-                          else {
-                            users.forEach(cur => {
-                              if (cur !== null) {
-                                let curEmployee = cur._doc;
-                                curEmployee.managerName = "";
-                                curEmployee.managerId = "";
-                                Employee.findByIdAndUpdate(
-                                  { _id: cur._id },
-                                  { $set: curEmployee },
-                                  err => {
-                                    if (err) return res.status(500).send(err);
-                                    else {
-                                      return res.sendStatus(200);
-                                    }
-                                  }
-                                );
-                              }
-                            });
-                          }
+                    Employee.updateMany(
+                      { managerId: obj._id },
+                      {
+                        $set: {
+                          managerId: "",
+                          managerName: ""
                         }
-                      );
-                    } else {
-                      return res.sendStatus(200);
-                    }
+                      },
+                      err => {
+                        if (err) return res.status(500).send(err);
+                        else return res.sendStatus(200);
+                      }
+                    );
                   }
                 }
               );
-            }
-          }
-        });
-      } else {
-        if (obj.noOfDR === "0") {
-          return res.sendStatus(200);
-        } else {
-          Employee.findById({ managerId: req.params._id }, (err, users) => {
-            if (err) return res.status(500).send(err);
-            else {
-              users.forEach(cur => {
-                if (cur !== null) {
-                  let curEmployee = cur._doc;
-                  curEmployee.managerName = "";
-                  curEmployee.managerId = "";
-                  Employee.findByIdAndUpdate(
-                    { _id: cur._id },
-                    { $set: curEmployee },
-                    err => {
-                      if (err) return res.status(500).send(err);
-                      else return res.sendStatus(200);
-                    }
-                  );
-                }
-              });
             }
           });
         }

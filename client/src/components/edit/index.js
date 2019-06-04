@@ -52,6 +52,7 @@ class Edit extends React.Component {
       return employee._id === this.props.match.params.id;
     });
     this.state = {
+      currentId: selectedEmployee._id,
       avatar: selectedEmployee[0].avatar,
       name: selectedEmployee[0].name,
       title: selectedEmployee[0].title,
@@ -62,12 +63,60 @@ class Edit extends React.Component {
       sms: selectedEmployee[0].sms,
       email: selectedEmployee[0].email,
       managerId: selectedEmployee[0].managerId,
-      managerName: selectedEmployee[0].managerName
+      managerName: selectedEmployee[0].managerName,
+      emailError: "",
+      officePhoneError: "",
+      cellPhoneError: "",
+      smsError: ""
     };
   }
 
   handleChange = event => {
     this.setState({ [event.target.id]: event.target.value });
+  };
+
+  handleEmail = event => {
+    if (event.target.value.match(/\S+@\S+\.\S+/)) {
+      this.setState({ emailError: "", email: event.target.value });
+    } else {
+      this.setState({
+        emailError: "Invalid format: xxxxxx@xxxx.xxx",
+        email: event.target.value
+      });
+    }
+  };
+
+  handleOfficePhone = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ officePhoneError: "", officePhone: event.target.value });
+    } else {
+      this.setState({
+        officePhoneError: "Invalid format: XXXXXXXXXX",
+        officePhone: event.target.value
+      });
+    }
+  };
+
+  handleCellPhone = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ cellPhoneError: "", cellPhone: event.target.value });
+    } else {
+      this.setState({
+        cellPhoneError: "Invalid format: XXXXXXXXXX",
+        cellPhone: event.target.value
+      });
+    }
+  };
+
+  handleSms = event => {
+    if (event.target.value.match(/^\d{10}$/)) {
+      this.setState({ smsError: "", sms: event.target.value });
+    } else {
+      this.setState({
+        smsError: "Invalid format: XXXXXXXXXX",
+        sms: event.target.value
+      });
+    }
   };
 
   handleChangeManager = e => {
@@ -114,6 +163,7 @@ class Edit extends React.Component {
 
   render() {
     const { isLoading, err, classes, employees } = this.props;
+    employees.filter(employee => employee._id !== this.state.currentId);
     if (err) throw err;
     return isLoading ? (
       <Loading />
@@ -212,7 +262,9 @@ class Edit extends React.Component {
                   placeholder="office phone"
                   label="Office Phone"
                   id="officePhone"
-                  onChange={this.handleChange}
+                  error={!!this.state.officePhoneError}
+                  helperText={this.state.officePhoneError}
+                  onChange={this.handleOfficePhone}
                   value={this.state.officePhone}
                 />
               </div>
@@ -221,7 +273,9 @@ class Edit extends React.Component {
                   placeholder="cell phone"
                   label="Cell Phone"
                   id="cellPhone"
-                  onChange={this.handleChange}
+                  error={!!this.state.cellPhoneError}
+                  helperText={this.state.cellPhoneError}
+                  onChange={this.handleCellPhone}
                   value={this.state.cellPhone}
                 />
               </div>
@@ -230,7 +284,9 @@ class Edit extends React.Component {
                   placeholder="sms"
                   label="SMS"
                   id="sms"
-                  onChange={this.handleChange}
+                  error={!!this.state.smsError}
+                  helperText={this.state.smsError}
+                  onChange={this.handleSms}
                   value={this.state.sms}
                 />
               </div>
@@ -239,7 +295,9 @@ class Edit extends React.Component {
                   placeholder="email"
                   label="Email"
                   id="email"
-                  onChange={this.handleChange}
+                  error={!!this.state.emailError}
+                  helperText={this.state.emailError}
+                  onChange={this.handleEmail}
                   value={this.state.email}
                 />
               </div>
