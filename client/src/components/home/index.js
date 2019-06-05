@@ -182,6 +182,7 @@ class Home extends React.Component {
     this.setState(
       {
         employeeId: employeeId,
+        managerId: "",
         offset: 0,
         initialLoad: true,
         pageStart: this.state.pageStart === 0 ? -1 : 0
@@ -194,6 +195,7 @@ class Home extends React.Component {
     this.setState(
       {
         managerId: managerId,
+        employeeId: "",
         offset: 0,
         initialLoad: true,
         pageStart: this.state.pageStart === 0 ? -1 : 0

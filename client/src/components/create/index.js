@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { createEmployee } from "../../redux/actions";
+import { createEmployee, getManager } from "../../redux/actions";
 import Loading from "../loading";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
@@ -66,6 +66,10 @@ class Create extends React.Component {
       cellPhoneError: "",
       smsError: ""
     };
+  }
+
+  componentDidMount() {
+    this.props.getManagerList();
   }
 
   handleChange = event => {
@@ -155,7 +159,7 @@ class Create extends React.Component {
   };
 
   render() {
-    const { isLoading, err, classes, employees } = this.props;
+    const { isLoading, err, classes, managers } = this.props;
     if (err) throw err;
     return isLoading ? (
       <Loading />
@@ -322,13 +326,13 @@ class Create extends React.Component {
                   helperText="Please select your manager"
                   margin="normal"
                 >
-                  {[{ _id: "", name: "" }, ...employees].map(employee => (
+                  {[{ _id: "", name: "" }, ...managers].map(manager => (
                     <option
-                      key={employee._id}
-                      value={employee.name}
-                      id={employee._id}
+                      key={manager._id}
+                      value={manager.name}
+                      id={manager._id}
                     >
-                      {employee.name}
+                      {manager.name}
                     </option>
                   ))}
                 </TextField>
@@ -368,6 +372,7 @@ Create.propTypes = {
 const mapStateToProps = state => {
   return {
     employees: state.employeeList.employees,
+    managers: state.managerList.managers,
     isLoading: state.employeeList.isLoading,
     err: state.employeeList.err
   };
@@ -377,6 +382,9 @@ const mapDispatchToProps = dispatch => {
   return {
     createNewEmployee: (employee, history) => {
       dispatch(createEmployee(employee, history));
+    },
+    getManagerList: () => {
+      dispatch(getManager());
     }
   };
 };
